@@ -2,8 +2,8 @@
 It is a simple script to exploit RCE for Samba (CVE-2017-7494 ).
 
 # Requirements
-sudo apt-get install smbclient
-pip install pysmbclient
+* sudo apt-get install smbclient
+* pip install pysmbclient
 
 # Usage
 ```
