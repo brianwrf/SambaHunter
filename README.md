@@ -65,3 +65,4 @@ optional arguments:
 [+] Brute force exploit: /home/shared/samba_14506.so
 [*] Exploit finished!
  ```
+![](https://raw.githubusercontent.com/brianwrf/SambaHunter/master/example.jpeg)
