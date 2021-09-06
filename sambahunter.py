@@ -155,7 +155,7 @@ def main():
         else:
             print("[!] Exploit failed!")
             exit()
-        #os.remove(temp_file_name)
+        os.remove(temp_file_name)
 
 if __name__ == '__main__':
     main()
