@@ -1,13 +1,17 @@
 # SambaHunter
 It is a simple script to exploit RCE for Samba (CVE-2017-7494).
 
+Now works with Python3. Many of the required Python2 libraries are deprecated (e.g. `commands`)
+
+Added logging to show which shares are writeable. If 'Exploit Finished' appears but no shares are writeable, the exploit didn't work.
+
 # Requirements
 * sudo apt-get install smbclient
 * pip install pysmbclient
 
 # Usage
 ```
-# python sambahunter.py -h
+# python3 sambahunter.py -h
 
 
   ____                  _           _   _             _            
@@ -33,7 +37,7 @@ optional arguments:
  
  # Example
  ```
- # python sambahunter.py -s 192.168.1.106 -c 'uname -a > /tmp/u.txt'
+ # python3 sambahunter.py -s 192.168.1.106 -c 'uname -a > /tmp/u.txt'
 
 
   ____                  _           _   _             _            
